@@ -1262,7 +1262,7 @@
           </li>
           <li class="memory-item">
             <i class="fa-solid fa-circle-check"></i>
-            <span><strong>Multi-Playlist Library:</strong> Combines tracks from both playlists into one mega iPod music library.</span>
+            <span><strong>Multi-Playlist Library:</strong> Automatically loads all authentic tracks from both YouTube playlists.</span>
           </li>
           <li class="memory-item">
             <i class="fa-solid fa-circle-check"></i>
@@ -1493,17 +1493,11 @@
   </div>
 
   <div id="yt-player-container">
-    <div id="yt-player-element"></div>
+    <div id="yt-player-element-1"></div>
+    <div id="yt-player-element-2"></div>
   </div>
 
   <script>
-    /* MULTI-PLAYLIST VIDEO IDS STORAGE */
-    const EXTRA_PLAYLIST_IDS = [
-      '1V4AscLidwg', 'ClxRBb7vLkw', '3KL9MUF8w68', 'fJ9rUzIMcZQ',
-      'gOMhN-hfIyY', 'YvkUqvS2B68', 'PWgvGjahvGE', '4m1EFMoRFvY',
-      'Soa3gO7tL-c', 'BciS5krYL80'
-    ];
-
     let TRACKS_DATABASE = [];
     let searchQuery = "";
 
@@ -1769,13 +1763,13 @@
       if (isLocked) return;
       playClickSound();
 
-      if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
-        const state = ytPlayer.getPlayerState();
+      if (player1 && typeof player1.getPlayerState === 'function') {
+        const state = player1.getPlayerState();
         if (state === YT.PlayerState.PLAYING) {
-          ytPlayer.pauseVideo();
+          player1.pauseVideo();
           setPlayState(false);
         } else {
-          ytPlayer.playVideo();
+          player1.playVideo();
           setPlayState(true);
         }
       } else {
@@ -1789,8 +1783,8 @@
       const track = TRACKS_DATABASE[currentTrackIndex];
       updateTrackUI();
 
-      if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-        ytPlayer.loadVideoById(track.id);
+      if (player1 && typeof player1.loadVideoById === 'function') {
+        player1.loadVideoById(track.id);
       }
       setPlayState(true);
     }
@@ -2008,11 +2002,11 @@
 
     dockSeekSlider.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      if (ytPlayer && typeof ytPlayer.getDuration === 'function') {
-        const dur = ytPlayer.getDuration();
+      if (player1 && typeof player1.getDuration === 'function') {
+        const dur = player1.getDuration();
         if (dur > 0) {
           const seekTime = (val / 100) * dur;
-          ytPlayer.seekTo(seekTime, true);
+          player1.seekTo(seekTime, true);
         }
       }
     });
@@ -2020,8 +2014,8 @@
     const dockVolumeSlider = document.getElementById('dockVolumeSlider');
     dockVolumeSlider.addEventListener('input', (e) => {
       const vol = parseInt(e.target.value, 10);
-      if (ytPlayer && typeof ytPlayer.setVolume === 'function') {
-        ytPlayer.setVolume(vol);
+      if (player1 && typeof player1.setVolume === 'function') {
+        player1.setVolume(vol);
       }
     });
 
@@ -2088,48 +2082,66 @@
     }
     renderBgCanvas();
 
-    /* DYNAMIC YOUTUBE PLAYLIST & METADATA LOADER */
-    let ytPlayer = null;
+    /* DYNAMIC MULTI-PLAYLIST YOUTUBE API LOADER */
+    let player1 = null;
+    let player2 = null;
+    let p1Ready = false;
+    let p2Ready = false;
+
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     const firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
     window.onYouTubeIframeAPIReady = function() {
-      ytPlayer = new YT.Player('yt-player-element', {
-        height: '180',
-        width: '280',
+      player1 = new YT.Player('yt-player-element-1', {
+        height: '1', width: '1',
         playerVars: {
           'listType': 'playlist',
           'list': 'PLiU9llEoc-uWMoC4KG1SbU90hymLCGYtj',
-          'autoplay': 0,
-          'controls': 0,
-          'rel': 0
+          'autoplay': 0, 'controls': 0, 'rel': 0
         },
         events: {
-          'onReady': onPlayerReady,
+          'onReady': () => { p1Ready = true; checkBothPlayersReady(); },
           'onStateChange': onPlayerStateChange,
+          'onError': onPlayerError
+        }
+      });
+
+      player2 = new YT.Player('yt-player-element-2', {
+        height: '1', width: '1',
+        playerVars: {
+          'listType': 'playlist',
+          'list': 'PLiU9llEoc-uWbcLZb0N7f9_duMz3-gv6w',
+          'autoplay': 0, 'controls': 0, 'rel': 0
+        },
+        events: {
+          'onReady': () => { p2Ready = true; checkBothPlayersReady(); },
           'onError': onPlayerError
         }
       });
     };
 
-    function onPlayerReady(event) {
-      console.log("YouTube Playlist Player Ready");
-      fetchPlaylistMetadata();
-      setInterval(syncPlayerProgress, 500);
+    function checkBothPlayersReady() {
+      if (p1Ready && p2Ready) {
+        console.log("Both YouTube Playlist Players Ready!");
+        fetchCombinedPlaylists();
+        setInterval(syncPlayerProgress, 500);
+      }
     }
 
-    function fetchPlaylistMetadata() {
-      if (!ytPlayer || typeof ytPlayer.getPlaylist !== 'function') return;
-      const p1 = ytPlayer.getPlaylist() || [];
-      const combinedIds = Array.from(new Set([...p1, ...EXTRA_PLAYLIST_IDS]));
+    function fetchCombinedPlaylists() {
+      const ids1 = (player1 && typeof player1.getPlaylist === 'function') ? (player1.getPlaylist() || []) : [];
+      const ids2 = (player2 && typeof player2.getPlaylist === 'function') ? (player2.getPlaylist() || []) : [];
+
+      const combinedIds = Array.from(new Set([...ids1, ...ids2]));
+      if (!combinedIds.length) return;
 
       TRACKS_DATABASE = combinedIds.map((vidId, i) => ({
         id: vidId,
         title: `Track #${i + 1}`,
-        artist: '2000s Nostalgia',
-        album: 'Combined Playlist',
+        artist: 'Playlist Song',
+        album: '2000s Nostalgia',
         duration: '',
         art: `https://img.youtube.com/vi/${vidId}/hqdefault.jpg`
       }));
@@ -2153,7 +2165,7 @@
             }
           })
           .catch(err => {
-            console.log(`Fallback metadata used for track ${i}`);
+            console.log(`Fallback metadata for track ${i}`);
           });
       });
     }
@@ -2170,10 +2182,10 @@
     }
 
     function updateLiveTrackInfo() {
-      if (!ytPlayer) return;
+      if (!player1) return;
 
-      if (typeof ytPlayer.getVideoData === 'function') {
-        const data = ytPlayer.getVideoData();
+      if (typeof player1.getVideoData === 'function') {
+        const data = player1.getVideoData();
         if (data && data.title && TRACKS_DATABASE[currentTrackIndex]) {
           const parsed = parseTrackTitle(data.title, data.author);
           TRACKS_DATABASE[currentTrackIndex].title = parsed.title;
@@ -2192,9 +2204,9 @@
     }
 
     function syncPlayerProgress() {
-      if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function' && typeof ytPlayer.getDuration === 'function') {
-        const cur = ytPlayer.getCurrentTime();
-        const dur = ytPlayer.getDuration();
+      if (player1 && typeof player1.getCurrentTime === 'function' && typeof player1.getDuration === 'function') {
+        const cur = player1.getCurrentTime();
+        const dur = player1.getDuration();
         if (dur > 0) {
           const pct = (cur / dur) * 100;
           lcdProgressBarFill.style.width = pct + '%';
