@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iPod Classic | 1,000 Songs in Your Pocket - 2000s Nostalgia</title>
+  <meta name="description" content="A nostalgic 2000s iPod web experience with interactive Click Wheel, 3D Cover Flow, Web Audio click sounds, and YouTube playlist music player.">
+  
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* ==========================================
+       DESIGN SYSTEM & THEMES
+       ========================================== */
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 30%, #e02474 0%, #7b1fa2 45%, #12002b 100%);
+      --card-glass: rgba(255, 255, 255, 0.08);
+      --card-border: rgba(255, 255, 255, 0.15);
+      --glass-blur: blur(20px);
+      --text-main: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.7);
+      --accent-neon: #ff007f;
+      --accent-cyan: #00f0ff;
+      --accent-yellow: #ffeb3b;
+
+      /* iPod Colors */
+      --ipod-body-front: linear-gradient(145deg, #e8eaed 0%, #cfd3d9 50%, #b2b6bf 100%);
+      --ipod-screen-bg: #cde4df; /* Classic LCD teal-green */
+      --ipod-screen-text: #1a2a26;
+      --ipod-wheel-bg: linear-gradient(135deg, #f8f9fa 0%, #e2e5e9 100%);
+      --ipod-wheel-text: #555d66;
+    }
+
+    [data-theme="studio"] {
+      --bg-gradient: radial-gradient(circle at 50% 40%, #2b1f1d 0%, #150f0e 60%, #080505 100%);
+      --card-glass: rgba(40, 30, 28, 0.6);
+      --card-border: rgba(255, 180, 120, 0.15);
+      --accent-neon: #ff6b35;
+      --accent-cyan: #f7c59f;
+    }
+
+    [data-theme="midnight"] {
+      --bg-gradient: radial-gradient(circle at 50% 30%, #0d1b2a 0%, #070e17 50%, #020408 100%);
+      --card-glass: rgba(13, 27, 42, 0.65);
+      --card-border: rgba(65, 90, 119, 0.3);
+      --accent-neon: #00e5ff;
+      --accent-cyan: #72efdd;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Dynamic Canvas Wavy Wire Background */
+    #background-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.85;
+    }
+
+    .bg-vibe-overlay {
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+      background-size: 24px 24px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Container Layout */
+    .app-container {
+      position: relative;
+      z-index: 2;
+      max-width: 1380px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.25rem 1.5rem 8.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* HEADER */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      background: var(--card-glass);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .apple-logo-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+      border: 1px solid rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #ffffff, var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .theme-selector {
+      display: flex;
+      gap: 0.4rem;
+      background: rgba(0,0,0,0.3);
+      padding: 4px;
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .theme-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .theme-btn.active {
+      border-color: #fff;
+      transform: scale(1.15);
+    }
+
+    .theme-btn[data-set-theme="default"] { background: linear-gradient(135deg, #e02474, #7b1fa2); }
+    .theme-btn[data-set-theme="studio"] { background: linear-gradient(135deg, #ff6b35, #150f0e); }
+    .theme-btn[data-set-theme="midnight"] { background: linear-gradient(135deg, #00e5ff, #070e17); }
+
+    /* QUOTE TICKER BANNER */
+    .quote-ticker-container {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 0.7rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      backdrop-filter: var(--glass-blur);
+    }
+
+    .quote-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      background: var(--accent-neon);
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .quote-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.92rem;
+      color: #fff;
+      font-style: italic;
+      flex: 1;
+      text-align: center;
+      transition: opacity 0.4s ease;
+    }
+
+    /* MAIN GRID */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 420px 1fr;
+      gap: 1.75rem;
+      align-items: center;
+    }
+
+    @media (max-width: 1100px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* LEFT INFO CARD */
+    .info-card {
+      background: var(--card-glass);
+      border: 1px solid var(--card-border);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-radius: 24px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #fff;
+    }
+
+    .card-title i { color: var(--accent-neon); }
+
+    .memory-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .memory-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .memory-item i {
+      color: var(--accent-cyan);
+      margin-top: 3px;
+    }
+
+    .sound-fx-btn {
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: all 0.25s ease;
+    }
+
+    .sound-fx-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+    }
+
+    /* PHOTOREALISTIC CSS IPOD CLASSIC */
+    .ipod-stage {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      perspective: 1000px;
+    }
+
+    .ipod-device {
+      width: 350px;
+      height: 570px;
+      background: var(--ipod-body-front);
+      border-radius: 36px;
+      padding: 24px 22px 28px 22px;
+      box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.6),
+        0 10px 20px rgba(0, 0, 0, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.9),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #d8dbdf;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .ipod-device:hover {
+      transform: translateY(-4px) rotateX(2deg) rotateY(-2deg);
+    }
+
+    .ipod-device::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 39px;
+      background: linear-gradient(135deg, #ffffff 0%, #8a9099 25%, #e1e4e8 50%, #4a5059 75%, #ffffff 100%);
+      z-index: -1;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    }
+
+    /* Hardware Controls */
+    .ipod-top-bar {
+      position: absolute;
+      top: -10px;
+      left: 36px;
+      right: 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 10px;
+      z-index: 10;
+    }
+
+    .hold-switch-housing {
+      width: 44px;
+      height: 9px;
+      background: #7a808a;
+      border-radius: 4px;
+      position: relative;
+      cursor: pointer;
+      border: 1px solid #4a4e56;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .hold-switch-nob {
+      width: 22px;
+      height: 13px;
+      background: linear-gradient(to bottom, #d0d4da, #9499a2);
+      border-radius: 3px;
+      position: absolute;
+      top: -3px;
+      left: 0;
+      transition: left 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hold-switch-housing.active .hold-switch-nob {
+      left: 22px;
+    }
+
+    .hold-indicator-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #444;
+    }
+
+    .hold-switch-housing.active .hold-indicator-dot {
+      background: #ff5500;
+      box-shadow: 0 0 6px #ff5500;
+    }
+
+    .earphone-jack {
+      width: 22px;
+      height: 9px;
+      background: #333;
+      border-radius: 4px 4px 0 0;
+      border: 1px solid #222;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .earphone-cord-plug {
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 14px;
+      height: 26px;
+      background: linear-gradient(to right, #f0f0f0, #d9d9d9, #bcbcbc);
+      border-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .earphone-cord-plug.unplugged {
+      top: -55px;
+      opacity: 0.4;
+    }
+
+    .earphone-wire {
+      width: 3px;
+      height: 120px;
+      background: #e6e6e6;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      position: absolute;
+      top: -120px;
+      left: 5.5px;
+    }
+
+    /* IPOD SCREEN FRAME */
+    .ipod-screen-bezel {
+      width: 100%;
+      height: 225px;
+      background: #111417;
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 
+        inset 0 2px 6px rgba(0, 0, 0, 0.8),
+        0 1px 1px rgba(255, 255, 255, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ipod-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--ipod-screen-bg);
+      border-radius: 8px;
+      color: var(--ipod-screen-text);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: background 0.3s ease;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.15);
+    }
+
+    .ipod-screen.backlight-off {
+      background: #9ab3ad;
+      color: #2b3834;
+      filter: contrast(0.9);
+    }
+
+    .ipod-screen-glare {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.05) 40%, transparent 60%);
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* LCD Top Status Bar */
+    .lcd-status-bar {
+      height: 22px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.6), rgba(255,255,255,0.1));
+      border-bottom: 1px solid rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .lcd-battery-icon {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      width: 22px;
+      height: 10px;
+      border: 1px solid var(--ipod-screen-text);
+      border-radius: 2px;
+      padding: 1px;
+      position: relative;
+    }
+
+    .lcd-battery-icon::after {
+      content: '';
+      position: absolute;
+      right: -3px;
+      top: 2px;
+      width: 2px;
+      height: 4px;
+      background: var(--ipod-screen-text);
+      border-radius: 0 1px 1px 0;
+    }
+
+    .lcd-battery-fill {
+      height: 100%;
+      width: 85%;
+      background: var(--ipod-screen-text);
+      border-radius: 1px;
+    }
+
+    /* LCD Views Container */
+    .lcd-content-view {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* VIEW 1: NOW PLAYING */
+    .view-now-playing {
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .now-playing-main {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .album-art-frame {
+      width: 86px;
+      height: 86px;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      border: 1px solid rgba(0,0,0,0.2);
+      flex-shrink: 0;
+      background: #000;
+      position: relative;
+    }
+
+    .album-art-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .track-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .marquee-text {
+      font-size: 0.85rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .artist-name {
+      font-size: 0.75rem;
+      font-weight: 600;
+      opacity: 0.85;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .album-name {
+      font-size: 0.68rem;
+      opacity: 0.7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lcd-visualizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 14px;
+      margin-top: 4px;
+    }
+
+    .viz-bar {
+      width: 4px;
+      background: var(--ipod-screen-text);
+      border-radius: 1px 1px 0 0;
+      height: 20%;
+      transition: height 0.15s ease;
+    }
+
+    .view-now-playing.playing .viz-bar {
+      animation: vizPulse 0.6s infinite ease-in-out alternate;
+    }
+
+    .view-now-playing.playing .viz-bar:nth-child(1) { animation-delay: 0.1s; }
+    .view-now-playing.playing .viz-bar:nth-child(2) { animation-delay: 0.3s; }
+    .view-now-playing.playing .viz-bar:nth-child(3) { animation-delay: 0.05s; }
+    .view-now-playing.playing .viz-bar:nth-child(4) { animation-delay: 0.4s; }
+    .view-now-playing.playing .viz-bar:nth-child(5) { animation-delay: 0.2s; }
+
+    @keyframes vizPulse {
+      0% { height: 15%; }
+      100% { height: 95%; }
+    }
+
+    .lcd-progress-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .lcd-progress-bar-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(0,0,0,0.15);
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.2);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .lcd-progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to bottom, #2b3834, #1a2a26);
+      border-radius: 3px;
+      transition: width 0.2s linear;
+    }
+
+    .lcd-time-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      font-weight: 700;
+    }
+
+    /* VIEW 2: MENU LIST */
+    .view-menu-list {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: var(--ipod-screen-bg);
+    }
+
+    .menu-header-bar {
+      background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.02));
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      border-bottom: 1px solid rgba(0,0,0,0.15);
+    }
+
+    .menu-items-scroll {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .menu-item-row {
+      padding: 5px 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      cursor: pointer;
+    }
+
+    .menu-item-row.selected {
+      background: linear-gradient(to bottom, #1d68bc, #104e96);
+      color: #ffffff;
+    }
+
+    /* VIEW 3: 3D COVER FLOW */
+    .view-cover-flow {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      perspective: 600px;
+      overflow: hidden;
+    }
+
+    .cover-flow-stage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 130px;
+      position: relative;
+      width: 100%;
+    }
+
+    .cf-card {
+      width: 90px;
+      height: 90px;
+      position: absolute;
+      border-radius: 4px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+      transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.4);
+      background: #000;
+    }
+
+    .cf-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .cf-card[data-pos="-2"] { transform: translateX(-110px) rotateY(60deg) scale(0.75); z-index: 1; opacity: 0.6; }
+    .cf-card[data-pos="-1"] { transform: translateX(-65px) rotateY(45deg) scale(0.85); z-index: 2; opacity: 0.85; }
+    .cf-card[data-pos="0"]  { transform: translateX(0) rotateY(0deg) scale(1.1); z-index: 5; opacity: 1; box-shadow: 0 12px 24px rgba(0,0,0,0.6); }
+    .cf-card[data-pos="1"]  { transform: translateX(65px) rotateY(-45deg) scale(0.85); z-index: 2; opacity: 0.85; }
+    .cf-card[data-pos="2"]  { transform: translateX(110px) rotateY(-60deg) scale(0.75); z-index: 1; opacity: 0.6; }
+
+    .cf-title-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+    }
+
+    /* VIEW 4: DO NOT DISCONNECT */
+    .view-syncing {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .sync-warning-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #ff5500;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      animation: syncPulse 1s infinite alternate;
+    }
+
+    @keyframes syncPulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      100% { transform: scale(1.08); opacity: 1; }
+    }
+
+    .sync-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+
+    /* VIEW 5: BRICK GAME */
+    .view-brick-game {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #brickCanvas {
+      background: var(--ipod-screen-bg);
+      width: 100%;
+      height: 100%;
+    }
+
+    /* CLICK WHEEL DESIGN */
+    .click-wheel-container {
+      width: 235px;
+      height: 235px;
+      border-radius: 50%;
+      background: var(--ipod-wheel-bg);
+      box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.25),
+        inset 0 2px 4px rgba(255, 255, 255, 0.9),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .click-wheel-container:active { cursor: grabbing; }
+
+    .wheel-btn-label {
+      position: absolute;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--ipod-wheel-text);
+      letter-spacing: 1px;
+      pointer-events: none;
+    }
+
+    .label-menu { top: 18px; }
+    .label-prev { left: 20px; font-size: 0.85rem; }
+    .label-next { right: 20px; font-size: 0.85rem; }
+    .label-playpause { bottom: 18px; font-size: 0.85rem; }
+
+    .center-select-btn {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #f0f3f6 0%, #d8dcde 100%);
+      box-shadow: 
+        0 4px 8px rgba(0,0,0,0.15),
+        inset 0 1px 2px rgba(255,255,255,0.9),
+        inset 0 -1px 2px rgba(0,0,0,0.2);
+      border: 1px solid #c4c8cc;
+      cursor: pointer;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .center-select-btn:active {
+      transform: scale(0.95);
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    /* RIGHT SIDEBAR PLAYLIST */
+    .playlist-panel {
+      background: var(--card-glass);
+      border: 1px solid var(--card-border);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-radius: 24px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      max-height: 570px;
+    }
+
+    .playlist-scroll {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .playlist-scroll::-webkit-scrollbar { width: 6px; }
+    .playlist-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+    .track-row-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .track-row-item:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .track-row-item.active {
+      background: linear-gradient(135deg, rgba(255, 0, 127, 0.3), rgba(0, 240, 255, 0.2));
+      border-color: var(--accent-neon);
+    }
+
+    .track-thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .track-row-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .track-row-title { font-size: 0.85rem; font-weight: 600; color: #fff; }
+    .track-row-artist { font-size: 0.75rem; color: var(--text-muted); }
+    .track-duration { font-size: 0.75rem; color: var(--text-muted); }
+
+    /* BOTTOM GLASSMUSIC PLAYER DOCK */
+    .bottom-player-dock {
+      position: fixed;
+      bottom: 1.25rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(92%, 1000px);
+      background: var(--card-glass);
+      border: 1px solid var(--card-border);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-radius: 24px;
+      padding: 0.8rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      z-index: 100;
+    }
+
+    .dock-left-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-width: 220px;
+    }
+
+    .dock-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    .dock-track-details { display: flex; flex-direction: column; }
+    .dock-track-title { font-size: 0.9rem; font-weight: 700; color: #fff; }
+    .dock-track-artist { font-size: 0.78rem; color: var(--text-muted); }
+
+    .dock-center-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      flex: 1;
+      max-width: 450px;
+    }
+
+    .dock-buttons {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    .dock-btn {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.75);
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dock-btn:hover { color: #fff; transform: scale(1.15); }
+
+    .dock-btn.play-main {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(255,255,255,0.3);
+    }
+
+    .dock-btn.play-main:hover {
+      transform: scale(1.08);
+      background: var(--accent-cyan);
+    }
+
+    .dock-progress-wrapper {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .dock-seek-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 5px;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.2);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .dock-seek-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .dock-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .dock-volume-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .dock-volume-slider {
+      width: 80px;
+      -webkit-appearance: none;
+      height: 4px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.2);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .dock-volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    #yt-player-container {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="background-canvas"></canvas>
+  <div class="bg-vibe-overlay"></div>
+
+  <div class="app-container">
+
+    <!-- HEADER -->
+    <header>
+      <div class="brand-group">
+        <div class="apple-logo-badge">
+          <i class="fa-brands fa-apple"></i>
+        </div>
+        <div>
+          <h1 class="hero-title">iPod Classic</h1>
+          <p class="hero-subtitle">1,000 Songs in Your Pocket • 2000s Nostalgia</p>
+        </div>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-pill">
+          <i class="fa-solid fa-hard-drive"></i>
+          <span>80 GB Storage</span>
+        </div>
+        <div class="stat-pill">
+          <i class="fa-solid fa-compact-disc"></i>
+          <span id="stat-song-count">Loading Playlist...</span>
+        </div>
+        <div class="theme-selector">
+          <button class="theme-btn active" data-set-theme="default" title="Silhouette Vibe"></button>
+          <button class="theme-btn" data-set-theme="studio" title="Retro Studio Vibe"></button>
+          <button class="theme-btn" data-set-theme="midnight" title="Midnight Ambient"></button>
+        </div>
+      </div>
+    </header>
+
+    <!-- AUTO-ROTATING QUOTE TICKER -->
+    <div class="quote-ticker-container">
+      <span class="quote-tag">2000s Memory</span>
+      <div class="quote-text" id="quoteText">"1,000 songs in your pocket. Say hello to iPod." — Steve Jobs, Oct 2001</div>
+      <i class="fa-solid fa-quote-right" style="color: rgba(255,255,255,0.3)"></i>
+    </div>
+
+    <!-- MAIN GRID -->
+    <main class="main-grid">
+
+      <!-- LEFT INFO CARD -->
+      <section class="info-card">
+        <h2 class="card-title">
+          <i class="fa-solid fa-sliders"></i>
+          <span>Nostalgic Details & Guide</span>
+        </h2>
+        <ul class="memory-list">
+          <li class="memory-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span><strong>Click Wheel Drag & Spin:</strong> Drag or spin around the rim to hear mechanical ticks and scroll songs/menus.</span>
+          </li>
+          <li class="memory-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span><strong>3D Cover Flow:</strong> Switch views to experience smooth 3D album carousel reflections.</span>
+          </li>
+          <li class="memory-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span><strong>Hold Switch:</strong> Toggle top lock switch to orange to lock all controls.</span>
+          </li>
+          <li class="memory-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span><strong>Headphone Cord:</strong> Click the top 3.5mm headphone jack to plug/unplug with audio snap.</span>
+          </li>
+        </ul>
+
+        <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem;">
+          <button class="sound-fx-btn" id="btnToggleBacklight">
+            <i class="fa-regular fa-lightbulb"></i>
+            <span>Toggle LCD Backlight</span>
+          </button>
+          <button class="sound-fx-btn" id="btnDialUpSound">
+            <i class="fa-solid fa-network-wired"></i>
+            <span>Play Dial-Up Modem SFX</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- CENTER PHOTOREALISTIC IPOD STAGE -->
+      <section class="ipod-stage">
+        <div class="ipod-device" id="ipodDevice">
+
+          <!-- Top Hardware Controls -->
+          <div class="ipod-top-bar">
+            <div class="hold-switch-housing" id="holdSwitch" title="Hold Switch Lock">
+              <div class="hold-switch-nob">
+                <div class="hold-indicator-dot"></div>
+              </div>
+            </div>
+
+            <div class="earphone-jack" id="earphoneJack" title="Click to Plug/Unplug Headphones">
+              <div class="earphone-cord-plug" id="earphonePlug">
+                <div class="earphone-wire"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LCD Screen Bezel -->
+          <div class="ipod-screen-bezel">
+            <div class="ipod-screen" id="ipodScreen">
+              <div class="ipod-screen-glare"></div>
+
+              <!-- Status Bar -->
+              <div class="lcd-status-bar">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <span class="play-state-icon" id="lcdStateIcon"><i class="fa-solid fa-pause"></i></span>
+                  <span id="lcdHeaderTitle">Now Playing</span>
+                </div>
+                <div class="lcd-battery-icon">
+                  <div class="lcd-battery-fill"></div>
+                </div>
+              </div>
+
+              <!-- Views Container -->
+              <div class="lcd-content-view" id="lcdViewContainer">
+
+                <!-- VIEW 1: NOW PLAYING -->
+                <div class="view-now-playing playing" id="viewNowPlaying">
+                  <div class="now-playing-main">
+                    <div class="album-art-frame">
+                      <img id="lcdAlbumArt" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80" alt="Album Art">
+                    </div>
+                    <div class="track-meta">
+                      <div class="marquee-text" id="lcdTrackTitle">Loading...</div>
+                      <div class="artist-name" id="lcdArtistName">2000s Playlist</div>
+                      <div class="album-name" id="lcdAlbumName">YouTube Playlist</div>
+                      <div class="lcd-visualizer">
+                        <div class="viz-bar"></div>
+                        <div class="viz-bar"></div>
+                        <div class="viz-bar"></div>
+                        <div class="viz-bar"></div>
+                        <div class="viz-bar"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="lcd-progress-container">
+                    <div class="lcd-progress-bar-track">
+                      <div class="lcd-progress-bar-fill" id="lcdProgressBarFill"></div>
+                    </div>
+                    <div class="lcd-time-row">
+                      <span id="lcdTimeCurrent">0:00</span>
+                      <span id="lcdTimeRemaining">-0:00</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- VIEW 2: MENU LIST -->
+                <div class="view-menu-list" id="viewMenuList" style="display: none;">
+                  <div class="menu-header-bar">iPod Menu</div>
+                  <div class="menu-items-scroll" id="menuItemsList">
+                    <div class="menu-item-row selected" data-action="nowplaying">
+                      <span>Now Playing</span>
+                      <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                    <div class="menu-item-row" data-action="coverflow">
+                      <span>Cover Flow</span>
+                      <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                    <div class="menu-item-row" data-action="playlist">
+                      <span>2000s Playlist</span>
+                      <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                    <div class="menu-item-row" data-action="brickgame">
+                      <span>Brick Game</span>
+                      <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                    <div class="menu-item-row" data-action="syncing">
+                      <span>Do Not Disconnect</span>
+                      <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- VIEW 3: 3D COVER FLOW -->
+                <div class="view-cover-flow" id="viewCoverFlow" style="display: none;">
+                  <div class="cover-flow-stage" id="coverFlowStage"></div>
+                  <div class="cf-title-label" id="cfTitleLabel">Loading...</div>
+                </div>
+
+                <!-- VIEW 4: DO NOT DISCONNECT -->
+                <div class="view-syncing" id="viewSyncing" style="display: none;">
+                  <div class="sync-warning-icon">
+                    <i class="fa-solid fa-rotate"></i>
+                  </div>
+                  <div class="sync-title">Do Not Disconnect</div>
+                  <div style="font-size: 0.7rem; opacity: 0.8;">Syncing YouTube playlist...</div>
+                </div>
+
+                <!-- VIEW 5: BRICK GAME -->
+                <div class="view-brick-game" id="viewBrickGame" style="display: none;">
+                  <canvas id="brickCanvas" width="280" height="180"></canvas>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Click Wheel -->
+          <div class="click-wheel-container" id="clickWheel">
+            <span class="wheel-btn-label label-menu">MENU</span>
+            <span class="wheel-btn-label label-prev"><i class="fa-solid fa-backward-step"></i></span>
+            <span class="wheel-btn-label label-next"><i class="fa-solid fa-forward-step"></i></span>
+            <span class="wheel-btn-label label-playpause"><i class="fa-solid fa-play"></i> <i class="fa-solid fa-pause"></i></span>
+
+            <div class="center-select-btn" id="centerSelectBtn"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- RIGHT SIDEBAR PLAYLIST -->
+      <section class="playlist-panel">
+        <h2 class="card-title">
+          <i class="fa-solid fa-list-ul"></i>
+          <span>YouTube Playlist Tracks</span>
+        </h2>
+        <div class="playlist-scroll" id="playlistTrackScroll">
+          <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 0;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.4rem; margin-bottom: 0.5rem; display: block;"></i>
+            Loading tracks from YouTube...
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- FIXED BOTTOM MUSIC PLAYER DOCK -->
+  <div class="bottom-player-dock">
+    <div class="dock-left-meta">
+      <img id="dockThumb" class="dock-thumb" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80" alt="Thumb">
+      <div class="dock-track-details">
+        <div class="dock-track-title" id="dockTrackTitle">Loading...</div>
+        <div class="dock-track-artist" id="dockTrackArtist">2000s Music</div>
+      </div>
+    </div>
+
+    <div class="dock-center-controls">
+      <div class="dock-buttons">
+        <button class="dock-btn" id="dockShuffleBtn" title="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
+        <button class="dock-btn" id="dockPrevBtn" title="Previous"><i class="fa-solid fa-backward-step"></i></button>
+        <button class="dock-btn play-main" id="dockPlayPauseBtn" title="Play/Pause"><i class="fa-solid fa-play"></i></button>
+        <button class="dock-btn" id="dockNextBtn" title="Next"><i class="fa-solid fa-forward-step"></i></button>
+        <button class="dock-btn" id="dockRepeatBtn" title="Repeat"><i class="fa-solid fa-repeat"></i></button>
+      </div>
+
+      <div class="dock-progress-wrapper">
+        <span id="dockCurrentTime">0:00</span>
+        <input type="range" class="dock-seek-slider" id="dockSeekSlider" min="0" max="100" value="0">
+        <span id="dockTotalTime">0:00</span>
+      </div>
+    </div>
+
+    <div class="dock-right-actions">
+      <div class="dock-volume-group">
+        <i class="fa-solid fa-volume-high" id="volumeIcon"></i>
+        <input type="range" class="dock-volume-slider" id="dockVolumeSlider" min="0" max="100" value="80">
+      </div>
+    </div>
+  </div>
+
+  <div id="yt-player-container">
+    <div id="yt-player-element"></div>
+  </div>
+
+  <script>
+    /* DYNAMIC PLAYLIST STORAGE */
+    let TRACKS_DATABASE = [];
+
+    const NOSTALGIA_QUOTES = [
+      `"1,000 songs in your pocket. Say hello to iPod." — Steve Jobs, Oct 2001`,
+      `"Rip. Mix. Burn. Express yourself on Mac and iPod." — Early 2000s Apple Campaign`,
+      `"iTunes is updating your iPod. Do not disconnect."`,
+      `"White headphone cords down every city street: the soundtrack of a generation."`,
+      `"Which iPod are you? 15GB, 2,000 Songs, 10-hour battery life."`,
+      `"Slide the Hold switch to orange to lock your click wheel."`,
+      `"Cover Flow transformed how we flipped through album artwork."`
+    ];
+
+    let currentTrackIndex = 0;
+    let isPlaying = false;
+    let isLocked = false;
+    let currentScreen = 'nowplaying';
+    let currentMenuIndex = 0;
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playClickSound() {
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1800, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.008);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.008);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.008);
+      } catch (e) {}
+    }
+
+    function playPopSound() {
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(350, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.04);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.04);
+      } catch (e) {}
+    }
+
+    function playDialUpSound() {
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(1200, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(2400, ctx.currentTime + 0.3);
+        osc.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.6);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.9);
+      } catch (e) {}
+    }
+
+    const lcdScreen = document.getElementById('ipodScreen');
+    const viewNowPlaying = document.getElementById('viewNowPlaying');
+    const viewMenuList = document.getElementById('viewMenuList');
+    const viewCoverFlow = document.getElementById('viewCoverFlow');
+    const viewSyncing = document.getElementById('viewSyncing');
+    const viewBrickGame = document.getElementById('viewBrickGame');
+
+    const lcdAlbumArt = document.getElementById('lcdAlbumArt');
+    const lcdTrackTitle = document.getElementById('lcdTrackTitle');
+    const lcdArtistName = document.getElementById('lcdArtistName');
+    const lcdAlbumName = document.getElementById('lcdAlbumName');
+    const lcdProgressBarFill = document.getElementById('lcdProgressBarFill');
+    const lcdTimeCurrent = document.getElementById('lcdTimeCurrent');
+    const lcdTimeRemaining = document.getElementById('lcdTimeRemaining');
+    const lcdHeaderTitle = document.getElementById('lcdHeaderTitle');
+    const lcdStateIcon = document.getElementById('lcdStateIcon');
+
+    const dockThumb = document.getElementById('dockThumb');
+    const dockTrackTitle = document.getElementById('dockTrackTitle');
+    const dockTrackArtist = document.getElementById('dockTrackArtist');
+    const dockCurrentTime = document.getElementById('dockCurrentTime');
+    const dockTotalTime = document.getElementById('dockTotalTime');
+    const dockSeekSlider = document.getElementById('dockSeekSlider');
+    const dockPlayPauseBtn = document.getElementById('dockPlayPauseBtn');
+    const playlistTrackScroll = document.getElementById('playlistTrackScroll');
+
+    function formatTime(seconds) {
+      if (isNaN(seconds) || seconds < 0) return "0:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function parseTrackTitle(rawTitle, rawAuthor) {
+      if (!rawTitle) return { title: 'Unknown Song', artist: rawAuthor || '2000s Artist' };
+      let clean = rawTitle
+        .replace(/\(Official (Music )?Video\)/gi, '')
+        .replace(/\[Official (Music )?Video\]/gi, '')
+        .replace(/\(HD\)/gi, '')
+        .replace(/\[HD\]/gi, '')
+        .replace(/\(Audio\)/gi, '')
+        .replace(/\[Audio\]/gi, '')
+        .trim();
+
+      if (clean.includes('-')) {
+        const parts = clean.split('-');
+        return {
+          artist: parts[0].trim(),
+          title: parts.slice(1).join('-').trim()
+        };
+      }
+      return {
+        artist: rawAuthor || '2000s Hits',
+        title: clean
+      };
+    }
+
+    function renderPlaylistUI() {
+      playlistTrackScroll.innerHTML = '';
+      if (!TRACKS_DATABASE.length) {
+        playlistTrackScroll.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No tracks found</div>`;
+        return;
+      }
+
+      document.getElementById('stat-song-count').textContent = `${TRACKS_DATABASE.length} Songs Loaded`;
+
+      TRACKS_DATABASE.forEach((track, index) => {
+        const row = document.createElement('div');
+        row.className = `track-row-item ${index === currentTrackIndex ? 'active' : ''}`;
+        row.innerHTML = `
+          <img src="${track.art}" class="track-thumb" alt="art" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80'">
+          <div class="track-row-info">
+            <div class="track-row-title">${track.title}</div>
+            <div class="track-row-artist">${track.artist}</div>
+          </div>
+          <div class="track-duration">${track.duration || 'YouTube'}</div>
+        `;
+        row.addEventListener('click', () => {
+          currentTrackIndex = index;
+          updateTrackUI();
+          if (ytPlayer && typeof ytPlayer.playVideoAt === 'function') {
+            ytPlayer.playVideoAt(currentTrackIndex);
+          }
+          setPlayState(true);
+        });
+        playlistTrackScroll.appendChild(row);
+      });
+
+      updateTrackUI();
+    }
+
+    function updateTrackUI() {
+      if (!TRACKS_DATABASE.length) return;
+      const track = TRACKS_DATABASE[currentTrackIndex];
+      if (!track) return;
+
+      lcdAlbumArt.src = track.art;
+      lcdTrackTitle.textContent = track.title;
+      lcdArtistName.textContent = track.artist;
+      lcdAlbumName.textContent = track.album || 'iPod Library';
+
+      dockThumb.src = track.art;
+      dockTrackTitle.textContent = track.title;
+      dockTrackArtist.textContent = track.artist;
+      if (track.duration) dockTotalTime.textContent = track.duration;
+
+      document.querySelectorAll('.track-row-item').forEach((row, idx) => {
+        row.classList.toggle('active', idx === currentTrackIndex);
+      });
+
+      renderCoverFlow();
+    }
+
+    function setPlayState(playing) {
+      isPlaying = playing;
+      if (isPlaying) {
+        viewNowPlaying.classList.add('playing');
+        lcdStateIcon.innerHTML = '<i class="fa-solid fa-play"></i>';
+        dockPlayPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+      } else {
+        viewNowPlaying.classList.remove('playing');
+        lcdStateIcon.innerHTML = '<i class="fa-solid fa-pause"></i>';
+        dockPlayPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+      }
+    }
+
+    function togglePlayPause() {
+      if (isLocked) return;
+      playClickSound();
+
+      if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+        const state = ytPlayer.getPlayerState();
+        if (state === YT.PlayerState.PLAYING) {
+          ytPlayer.pauseVideo();
+          setPlayState(false);
+        } else {
+          ytPlayer.playVideo();
+          setPlayState(true);
+        }
+      } else {
+        setPlayState(!isPlaying);
+      }
+    }
+
+    function playNextTrack() {
+      if (isLocked || !TRACKS_DATABASE.length) return;
+      playClickSound();
+      currentTrackIndex = (currentTrackIndex + 1) % TRACKS_DATABASE.length;
+      updateTrackUI();
+
+      if (ytPlayer && typeof ytPlayer.playVideoAt === 'function') {
+        ytPlayer.playVideoAt(currentTrackIndex);
+      }
+      setPlayState(true);
+    }
+
+    function playPrevTrack() {
+      if (isLocked || !TRACKS_DATABASE.length) return;
+      playClickSound();
+      currentTrackIndex = (currentTrackIndex - 1 + TRACKS_DATABASE.length) % TRACKS_DATABASE.length;
+      updateTrackUI();
+
+      if (ytPlayer && typeof ytPlayer.playVideoAt === 'function') {
+        ytPlayer.playVideoAt(currentTrackIndex);
+      }
+      setPlayState(true);
+    }
+
+    function switchScreen(screenName) {
+      currentScreen = screenName;
+      viewNowPlaying.style.display = screenName === 'nowplaying' ? 'flex' : 'none';
+      viewMenuList.style.display = screenName === 'menu' ? 'flex' : 'none';
+      viewCoverFlow.style.display = screenName === 'coverflow' ? 'flex' : 'none';
+      viewSyncing.style.display = screenName === 'syncing' ? 'flex' : 'none';
+      viewBrickGame.style.display = screenName === 'brickgame' ? 'flex' : 'none';
+
+      if (screenName === 'nowplaying') lcdHeaderTitle.textContent = 'Now Playing';
+      else if (screenName === 'menu') lcdHeaderTitle.textContent = 'iPod Menu';
+      else if (screenName === 'coverflow') lcdHeaderTitle.textContent = 'Cover Flow';
+      else if (screenName === 'syncing') lcdHeaderTitle.textContent = 'Updating...';
+      else if (screenName === 'brickgame') {
+        lcdHeaderTitle.textContent = 'Brick Game';
+        startBrickGame();
+      }
+
+      playClickSound();
+    }
+
+    const coverFlowStage = document.getElementById('coverFlowStage');
+    const cfTitleLabel = document.getElementById('cfTitleLabel');
+
+    function renderCoverFlow() {
+      coverFlowStage.innerHTML = '';
+      const total = TRACKS_DATABASE.length;
+      if (!total) return;
+
+      for (let offset = -2; offset <= 2; offset++) {
+        let idx = (currentTrackIndex + offset + total) % total;
+        const track = TRACKS_DATABASE[idx];
+
+        const card = document.createElement('div');
+        card.className = 'cf-card';
+        card.setAttribute('data-pos', offset);
+        card.innerHTML = `<img src="${track.art}" alt="CF" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80'">`;
+        coverFlowStage.appendChild(card);
+      }
+
+      const activeTrack = TRACKS_DATABASE[currentTrackIndex];
+      if (activeTrack) {
+        cfTitleLabel.textContent = `${activeTrack.artist} - ${activeTrack.title}`;
+      }
+    }
+
+    let quoteIndex = 0;
+    const quoteText = document.getElementById('quoteText');
+    setInterval(() => {
+      quoteIndex = (quoteIndex + 1) % NOSTALGIA_QUOTES.length;
+      quoteText.style.opacity = '0';
+      setTimeout(() => {
+        quoteText.textContent = NOSTALGIA_QUOTES[quoteIndex];
+        quoteText.style.opacity = '1';
+      }, 400);
+    }, 6000);
+
+    /* CLICK WHEEL INTERACTION */
+    const clickWheel = document.getElementById('clickWheel');
+    let isDraggingWheel = false;
+    let lastAngle = 0;
+    let accumulatedAngle = 0;
+
+    function getAngle(x, y, rect) {
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      return Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
+    }
+
+    clickWheel.addEventListener('pointerdown', (e) => {
+      if (isLocked) return;
+      isDraggingWheel = true;
+      const rect = clickWheel.getBoundingClientRect();
+      lastAngle = getAngle(e.clientX, e.clientY, rect);
+      accumulatedAngle = 0;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isDraggingWheel || isLocked) return;
+      const rect = clickWheel.getBoundingClientRect();
+      const currentAngle = getAngle(e.clientX, e.clientY, rect);
+      let diff = currentAngle - lastAngle;
+
+      if (diff > 180) diff -= 360;
+      if (diff < -180) diff += 360;
+
+      accumulatedAngle += diff;
+      lastAngle = currentAngle;
+
+      if (Math.abs(accumulatedAngle) >= 22) {
+        const direction = accumulatedAngle > 0 ? 1 : -1;
+        accumulatedAngle = 0;
+        playClickSound();
+
+        if (currentScreen === 'nowplaying' || currentScreen === 'coverflow') {
+          if (direction > 0) playNextTrack();
+          else playPrevTrack();
+        } else if (currentScreen === 'menu') {
+          scrollMenu(direction);
+        } else if (currentScreen === 'brickgame') {
+          movePaddle(direction * 15);
+        }
+      }
+    });
+
+    window.addEventListener('pointerup', () => { isDraggingWheel = false; });
+
+    clickWheel.addEventListener('click', (e) => {
+      if (isLocked) return;
+      const rect = clickWheel.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (Math.hypot(x - 117.5, y - 117.5) < 42) {
+        onCenterSelect();
+        return;
+      }
+
+      if (y < 70) {
+        switchScreen(currentScreen === 'menu' ? 'nowplaying' : 'menu');
+      } else if (y > 165) {
+        togglePlayPause();
+      } else if (x < 70) {
+        playPrevTrack();
+      } else if (x > 165) {
+        playNextTrack();
+      }
+    });
+
+    const menuRows = document.querySelectorAll('.menu-item-row');
+    function scrollMenu(dir) {
+      menuRows[currentMenuIndex].classList.remove('selected');
+      currentMenuIndex = (currentMenuIndex + dir + menuRows.length) % menuRows.length;
+      menuRows[currentMenuIndex].classList.add('selected');
+    }
+
+    function onCenterSelect() {
+      playClickSound();
+      if (currentScreen === 'menu') {
+        const targetAction = menuRows[currentMenuIndex].getAttribute('data-action');
+        switchScreen(targetAction);
+      } else if (currentScreen === 'coverflow') {
+        switchScreen('nowplaying');
+      }
+    }
+
+    const holdSwitch = document.getElementById('holdSwitch');
+    holdSwitch.addEventListener('click', () => {
+      isLocked = !isLocked;
+      holdSwitch.classList.toggle('active', isLocked);
+      playPopSound();
+    });
+
+    document.getElementById('btnToggleBacklight').addEventListener('click', () => {
+      lcdScreen.classList.toggle('backlight-off');
+      playPopSound();
+    });
+
+    document.getElementById('btnDialUpSound').addEventListener('click', playDialUpSound);
+
+    const earphoneJack = document.getElementById('earphoneJack');
+    const earphonePlug = document.getElementById('earphonePlug');
+    let isPluggedIn = true;
+    earphoneJack.addEventListener('click', () => {
+      isPluggedIn = !isPluggedIn;
+      earphonePlug.classList.toggle('unplugged', !isPluggedIn);
+      playPopSound();
+      if (!isPluggedIn && isPlaying) togglePlayPause();
+    });
+
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const theme = btn.getAttribute('data-set-theme');
+        if (theme === 'default') document.body.removeAttribute('data-theme');
+        else document.body.setAttribute('data-theme', theme);
+        playPopSound();
+      });
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') { e.preventDefault(); togglePlayPause(); }
+      else if (e.code === 'ArrowRight') playNextTrack();
+      else if (e.code === 'ArrowLeft') playPrevTrack();
+      else if (e.code === 'KeyM') switchScreen(currentScreen === 'menu' ? 'nowplaying' : 'menu');
+      else if (e.code === 'KeyC') switchScreen('coverflow');
+    });
+
+    document.getElementById('dockPlayPauseBtn').addEventListener('click', togglePlayPause);
+    document.getElementById('dockNextBtn').addEventListener('click', playNextTrack);
+    document.getElementById('dockPrevBtn').addEventListener('click', playPrevTrack);
+
+    dockSeekSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (ytPlayer && typeof ytPlayer.getDuration === 'function') {
+        const dur = ytPlayer.getDuration();
+        if (dur > 0) {
+          const seekTime = (val / 100) * dur;
+          ytPlayer.seekTo(seekTime, true);
+        }
+      }
+    });
+
+    const dockVolumeSlider = document.getElementById('dockVolumeSlider');
+    dockVolumeSlider.addEventListener('input', (e) => {
+      const vol = parseInt(e.target.value, 10);
+      if (ytPlayer && typeof ytPlayer.setVolume === 'function') {
+        ytPlayer.setVolume(vol);
+      }
+    });
+
+    /* BRICK GAME */
+    const brickCanvas = document.getElementById('brickCanvas');
+    const bCtx = brickCanvas.getContext('2d');
+    let paddleX = 110, ballX = 140, ballY = 90, ballDx = 2, ballDy = -2;
+    let brickLoopId = null;
+
+    function startBrickGame() {
+      paddleX = 110; ballX = 140; ballY = 90; ballDx = 2; ballDy = -2;
+      if (brickLoopId) cancelAnimationFrame(brickLoopId);
+      renderBrickFrame();
+    }
+
+    function movePaddle(delta) { paddleX = Math.max(0, Math.min(200, paddleX + delta)); }
+
+    function renderBrickFrame() {
+      if (currentScreen !== 'brickgame') return;
+      bCtx.clearRect(0, 0, 280, 180);
+      bCtx.fillStyle = '#1a2a26';
+      bCtx.fillRect(paddleX, 165, 70, 8);
+      bCtx.beginPath();
+      bCtx.arc(ballX, ballY, 5, 0, Math.PI * 2);
+      bCtx.fill();
+
+      ballX += ballDx; ballY += ballDy;
+      if (ballX < 5 || ballX > 275) ballDx = -ballDx;
+      if (ballY < 5) ballDy = -ballDy;
+
+      if (ballY > 158 && ballX > paddleX && ballX < paddleX + 70) {
+        ballDy = -ballDy;
+        playClickSound();
+      }
+      if (ballY > 180) { ballX = 140; ballY = 90; ballDy = -2; }
+      brickLoopId = requestAnimationFrame(renderBrickFrame);
+    }
+
+    /* WAVY WIRE BACKGROUND CANVAS */
+    const bgCanvas = document.getElementById('background-canvas');
+    const ctxBg = bgCanvas.getContext('2d');
+    function resizeBg() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeBg);
+    resizeBg();
+
+    let wavePhase = 0;
+    function renderBgCanvas() {
+      ctxBg.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+      ctxBg.beginPath();
+      ctxBg.lineWidth = 3;
+      ctxBg.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+      ctxBg.shadowColor = '#00f0ff';
+      ctxBg.shadowBlur = 12;
+
+      const midY = bgCanvas.height * 0.5;
+      for (let x = 0; x < bgCanvas.width; x += 10) {
+        const y = midY + Math.sin(x * 0.005 + wavePhase) * 60 + Math.cos(x * 0.01) * 30;
+        if (x === 0) ctxBg.moveTo(x, y);
+        else ctxBg.lineTo(x, y);
+      }
+      ctxBg.stroke();
+      wavePhase += 0.02;
+      requestAnimationFrame(renderBgCanvas);
+    }
+    renderBgCanvas();
+
+    /* DYNAMIC YOUTUBE PLAYLIST & METADATA LOADER */
+    let ytPlayer = null;
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    window.onYouTubeIframeAPIReady = function() {
+      ytPlayer = new YT.Player('yt-player-element', {
+        height: '180',
+        width: '280',
+        playerVars: {
+          'listType': 'playlist',
+          'list': 'PLiU9llEoc-uWbcLZb0N7f9_duMz3-gv6w',
+          'autoplay': 0,
+          'controls': 0,
+          'rel': 0
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange,
+          'onError': onPlayerError
+        }
+      });
+    };
+
+    function onPlayerReady(event) {
+      console.log("YouTube Playlist Player Ready");
+      fetchPlaylistMetadata();
+      setInterval(syncPlayerProgress, 500);
+    }
+
+    function fetchPlaylistMetadata() {
+      if (!ytPlayer || typeof ytPlayer.getPlaylist !== 'function') return;
+      const playlistIds = ytPlayer.getPlaylist();
+      if (!playlistIds || !playlistIds.length) return;
+
+      TRACKS_DATABASE = playlistIds.map((vidId, i) => ({
+        id: vidId,
+        title: `Track #${i + 1}`,
+        artist: 'YouTube Playlist',
+        album: '2000s Hits',
+        duration: '',
+        art: `https://img.youtube.com/vi/${vidId}/hqdefault.jpg`
+      }));
+
+      renderPlaylistUI();
+
+      // Asynchronously enrich song titles & artists using oEmbed/noembed
+      playlistIds.forEach((vidId, i) => {
+        fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${vidId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.title) {
+              const parsed = parseTrackTitle(data.title, data.author_name);
+              TRACKS_DATABASE[i].title = parsed.title;
+              TRACKS_DATABASE[i].artist = parsed.artist;
+              if (data.thumbnail_url) {
+                TRACKS_DATABASE[i].art = data.thumbnail_url;
+              }
+              renderPlaylistUI();
+            }
+          })
+          .catch(err => {
+            console.log(`Fallback metadata used for track ${i}`);
+          });
+      });
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.PLAYING) {
+        setPlayState(true);
+        updateLiveTrackInfo();
+      } else if (event.data === YT.PlayerState.PAUSED) {
+        setPlayState(false);
+      } else if (event.data === YT.PlayerState.ENDED) {
+        playNextTrack();
+      }
+    }
+
+    function updateLiveTrackInfo() {
+      if (!ytPlayer) return;
+      if (typeof ytPlayer.getPlaylistIndex === 'function') {
+        const idx = ytPlayer.getPlaylistIndex();
+        if (idx >= 0 && idx < TRACKS_DATABASE.length) {
+          currentTrackIndex = idx;
+        }
+      }
+
+      if (typeof ytPlayer.getVideoData === 'function') {
+        const data = ytPlayer.getVideoData();
+        if (data && data.title && TRACKS_DATABASE[currentTrackIndex]) {
+          const parsed = parseTrackTitle(data.title, data.author);
+          TRACKS_DATABASE[currentTrackIndex].title = parsed.title;
+          TRACKS_DATABASE[currentTrackIndex].artist = parsed.artist;
+          if (data.video_id) {
+            TRACKS_DATABASE[currentTrackIndex].art = `https://img.youtube.com/vi/${data.video_id}/hqdefault.jpg`;
+          }
+        }
+      }
+      updateTrackUI();
+    }
+
+    function onPlayerError(event) {
+      console.warn("YouTube Player error:", event.data);
+      playNextTrack();
+    }
+
+    function syncPlayerProgress() {
+      if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function' && typeof ytPlayer.getDuration === 'function') {
+        const cur = ytPlayer.getCurrentTime();
+        const dur = ytPlayer.getDuration();
+        if (dur > 0) {
+          const pct = (cur / dur) * 100;
+          lcdProgressBarFill.style.width = pct + '%';
+          dockSeekSlider.value = pct;
+
+          lcdTimeCurrent.textContent = formatTime(cur);
+          dockCurrentTime.textContent = formatTime(cur);
+
+          const rem = dur - cur;
+          lcdTimeRemaining.textContent = '-' + formatTime(rem);
+          dockTotalTime.textContent = formatTime(dur);
+
+          if (TRACKS_DATABASE[currentTrackIndex]) {
+            TRACKS_DATABASE[currentTrackIndex].duration = formatTime(dur);
+          }
+        }
+      }
+    }
+  </script>
+</body>
+</html>
