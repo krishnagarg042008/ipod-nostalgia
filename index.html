@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>iPod Classic | 1,000 Songs in Your Pocket - 2000s Nostalgia</title>
-  <meta name="description" content="A nostalgic 2000s iPod web experience with interactive Click Wheel, 3D Cover Flow, Web Audio click sounds, and YouTube playlist music player.">
+  <meta name="description" content="A nostalgic 2000s iPod web experience with interactive Click Wheel, 3D Cover Flow, Web Audio click sounds, song search, and YouTube playlist music player.">
   
   <!-- Google Fonts & FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -827,6 +827,64 @@
       height: 100%;
     }
 
+    /* VIEW 6: SEARCH SONGS ON LCD SCREEN */
+    .view-search-songs {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: var(--ipod-screen-bg);
+      padding: 6px;
+    }
+
+    .lcd-search-bar {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .lcd-search-bar input {
+      width: 100%;
+      padding: 4px 6px 4px 22px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.3);
+      background: rgba(255,255,255,0.75);
+      color: #000;
+      outline: none;
+    }
+
+    .lcd-search-bar i {
+      position: absolute;
+      left: 6px;
+      font-size: 0.65rem;
+      color: #444;
+    }
+
+    .lcd-search-results {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      gap: 2px;
+    }
+
+    .lcd-search-item {
+      padding: 4px 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      cursor: pointer;
+    }
+
+    .lcd-search-item.selected {
+      background: linear-gradient(to bottom, #1d68bc, #104e96);
+      color: #ffffff;
+    }
+
     /* CLICK WHEEL DESIGN */
     .click-wheel-container {
       width: 235px;
@@ -893,10 +951,55 @@
       padding: 1.5rem;
       display: flex;
       flex-direction: column;
-      gap: 1.2rem;
+      gap: 1rem;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
       max-height: 570px;
     }
+
+    /* Playlist Panel Search Box */
+    .playlist-search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .playlist-search-box input {
+      width: 100%;
+      padding: 0.6rem 2rem 0.6rem 2.2rem;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .playlist-search-box input:focus {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+    }
+
+    .playlist-search-box .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .playlist-search-box .clear-search-btn {
+      position: absolute;
+      right: 0.6rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .playlist-search-box .clear-search-btn:hover { color: #fff; }
 
     .playlist-scroll {
       display: flex;
@@ -904,6 +1007,7 @@
       gap: 0.6rem;
       overflow-y: auto;
       padding-right: 4px;
+      flex: 1;
     }
 
     .playlist-scroll::-webkit-scrollbar { width: 6px; }
@@ -1158,15 +1262,15 @@
           </li>
           <li class="memory-item">
             <i class="fa-solid fa-circle-check"></i>
+            <span><strong>Song Search:</strong> Type in the playlist search box or select "Search Songs" on the iPod menu to find any track.</span>
+          </li>
+          <li class="memory-item">
+            <i class="fa-solid fa-circle-check"></i>
             <span><strong>3D Cover Flow:</strong> Switch views to experience smooth 3D album carousel reflections.</span>
           </li>
           <li class="memory-item">
             <i class="fa-solid fa-circle-check"></i>
             <span><strong>Hold Switch:</strong> Toggle top lock switch to orange to lock all controls.</span>
-          </li>
-          <li class="memory-item">
-            <i class="fa-solid fa-circle-check"></i>
-            <span><strong>Headphone Cord:</strong> Click the top 3.5mm headphone jack to plug/unplug with audio snap.</span>
           </li>
         </ul>
 
@@ -1259,6 +1363,10 @@
                       <span>Now Playing</span>
                       <i class="fa-solid fa-chevron-right"></i>
                     </div>
+                    <div class="menu-item-row" data-action="searchsongs">
+                      <span>Search Songs</span>
+                      <i class="fa-solid fa-chevron-right"></i>
+                    </div>
                     <div class="menu-item-row" data-action="coverflow">
                       <span>Cover Flow</span>
                       <i class="fa-solid fa-chevron-right"></i>
@@ -1298,6 +1406,15 @@
                   <canvas id="brickCanvas" width="280" height="180"></canvas>
                 </div>
 
+                <!-- VIEW 6: LCD SEARCH SONGS -->
+                <div class="view-search-songs" id="viewSearchSongs" style="display: none;">
+                  <div class="lcd-search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="lcdSearchInput" placeholder="Search track..." autocomplete="off">
+                  </div>
+                  <div class="lcd-search-results" id="lcdSearchResults"></div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -1315,12 +1432,20 @@
         </div>
       </section>
 
-      <!-- RIGHT SIDEBAR PLAYLIST -->
+      <!-- RIGHT SIDEBAR PLAYLIST WITH SEARCH -->
       <section class="playlist-panel">
         <h2 class="card-title">
           <i class="fa-solid fa-list-ul"></i>
-          <span>YouTube Playlist Tracks</span>
+          <span>YouTube Playlist</span>
         </h2>
+
+        <!-- Search Box -->
+        <div class="playlist-search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="songSearchInput" placeholder="Search songs or artists..." autocomplete="off">
+          <button id="clearSearchBtn" class="clear-search-btn" style="display:none;" title="Clear search"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
         <div class="playlist-scroll" id="playlistTrackScroll">
           <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 0;">
             <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.4rem; margin-bottom: 0.5rem; display: block;"></i>
@@ -1374,6 +1499,7 @@
   <script>
     /* DYNAMIC PLAYLIST STORAGE */
     let TRACKS_DATABASE = [];
+    let searchQuery = "";
 
     const NOSTALGIA_QUOTES = [
       `"1,000 songs in your pocket. Say hello to iPod." — Steve Jobs, Oct 2001`,
@@ -1458,6 +1584,7 @@
     const viewCoverFlow = document.getElementById('viewCoverFlow');
     const viewSyncing = document.getElementById('viewSyncing');
     const viewBrickGame = document.getElementById('viewBrickGame');
+    const viewSearchSongs = document.getElementById('viewSearchSongs');
 
     const lcdAlbumArt = document.getElementById('lcdAlbumArt');
     const lcdTrackTitle = document.getElementById('lcdTrackTitle');
@@ -1477,6 +1604,11 @@
     const dockSeekSlider = document.getElementById('dockSeekSlider');
     const dockPlayPauseBtn = document.getElementById('dockPlayPauseBtn');
     const playlistTrackScroll = document.getElementById('playlistTrackScroll');
+
+    const songSearchInput = document.getElementById('songSearchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const lcdSearchInput = document.getElementById('lcdSearchInput');
+    const lcdSearchResults = document.getElementById('lcdSearchResults');
 
     function formatTime(seconds) {
       if (isNaN(seconds) || seconds < 0) return "0:00";
@@ -1509,16 +1641,47 @@
       };
     }
 
+    /* SEARCH FILTERING LOGIC */
+    songSearchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      clearSearchBtn.style.display = searchQuery ? 'block' : 'none';
+      renderPlaylistUI();
+    });
+
+    clearSearchBtn.addEventListener('click', () => {
+      searchQuery = "";
+      songSearchInput.value = "";
+      clearSearchBtn.style.display = 'none';
+      renderPlaylistUI();
+    });
+
+    lcdSearchInput.addEventListener('input', (e) => {
+      renderLcdSearchResults(e.target.value);
+    });
+
     function renderPlaylistUI() {
       playlistTrackScroll.innerHTML = '';
       if (!TRACKS_DATABASE.length) {
-        playlistTrackScroll.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No tracks found</div>`;
+        playlistTrackScroll.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No tracks loaded</div>`;
         return;
       }
 
       document.getElementById('stat-song-count').textContent = `${TRACKS_DATABASE.length} Songs Loaded`;
 
-      TRACKS_DATABASE.forEach((track, index) => {
+      const q = searchQuery.trim().toLowerCase();
+      const filtered = TRACKS_DATABASE.map((track, idx) => ({ ...track, _origIdx: idx }))
+        .filter(track => {
+          if (!q) return true;
+          return track.title.toLowerCase().includes(q) || track.artist.toLowerCase().includes(q);
+        });
+
+      if (!filtered.length) {
+        playlistTrackScroll.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 0;">No songs match "${searchQuery}"</div>`;
+        return;
+      }
+
+      filtered.forEach((track) => {
+        const index = track._origIdx;
         const row = document.createElement('div');
         row.className = `track-row-item ${index === currentTrackIndex ? 'active' : ''}`;
         row.innerHTML = `
@@ -1541,6 +1704,34 @@
       });
 
       updateTrackUI();
+    }
+
+    function renderLcdSearchResults(queryStr = "") {
+      lcdSearchResults.innerHTML = '';
+      const q = queryStr.trim().toLowerCase();
+      const filtered = TRACKS_DATABASE.map((t, idx) => ({ ...t, _origIdx: idx }))
+        .filter(t => !q || t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
+
+      if (!filtered.length) {
+        lcdSearchResults.innerHTML = `<div style="padding: 10px; font-size: 0.72rem; text-align: center; opacity: 0.7;">No tracks found</div>`;
+        return;
+      }
+
+      filtered.forEach(track => {
+        const div = document.createElement('div');
+        div.className = `lcd-search-item ${track._origIdx === currentTrackIndex ? 'selected' : ''}`;
+        div.innerHTML = `<span>${track.title}</span><span style="opacity:0.75; font-size:0.65rem;">${track.artist}</span>`;
+        div.addEventListener('click', () => {
+          currentTrackIndex = track._origIdx;
+          updateTrackUI();
+          if (ytPlayer && typeof ytPlayer.playVideoAt === 'function') {
+            ytPlayer.playVideoAt(currentTrackIndex);
+          }
+          setPlayState(true);
+          switchScreen('nowplaying');
+        });
+        lcdSearchResults.appendChild(div);
+      });
     }
 
     function updateTrackUI() {
@@ -1627,11 +1818,17 @@
       viewCoverFlow.style.display = screenName === 'coverflow' ? 'flex' : 'none';
       viewSyncing.style.display = screenName === 'syncing' ? 'flex' : 'none';
       viewBrickGame.style.display = screenName === 'brickgame' ? 'flex' : 'none';
+      viewSearchSongs.style.display = screenName === 'searchsongs' ? 'flex' : 'none';
 
       if (screenName === 'nowplaying') lcdHeaderTitle.textContent = 'Now Playing';
       else if (screenName === 'menu') lcdHeaderTitle.textContent = 'iPod Menu';
       else if (screenName === 'coverflow') lcdHeaderTitle.textContent = 'Cover Flow';
       else if (screenName === 'syncing') lcdHeaderTitle.textContent = 'Updating...';
+      else if (screenName === 'searchsongs') {
+        lcdHeaderTitle.textContent = 'Search Songs';
+        renderLcdSearchResults();
+        setTimeout(() => lcdSearchInput.focus(), 100);
+      }
       else if (screenName === 'brickgame') {
         lcdHeaderTitle.textContent = 'Brick Game';
         startBrickGame();
@@ -1801,6 +1998,7 @@
     });
 
     window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT') return; // Don't intercept when typing in search input
       if (e.code === 'Space') { e.preventDefault(); togglePlayPause(); }
       else if (e.code === 'ArrowRight') playNextTrack();
       else if (e.code === 'ArrowLeft') playPrevTrack();
@@ -1942,7 +2140,6 @@
 
       renderPlaylistUI();
 
-      // Asynchronously enrich song titles & artists using oEmbed/noembed
       playlistIds.forEach((vidId, i) => {
         fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${vidId}`)
           .then(res => res.json())
