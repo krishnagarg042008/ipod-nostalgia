@@ -1229,7 +1229,7 @@
         </div>
         <div class="stat-pill">
           <i class="fa-solid fa-compact-disc"></i>
-          <span id="stat-song-count">Loading Playlist...</span>
+          <span id="stat-song-count">Loading Playlists...</span>
         </div>
         <div class="theme-selector">
           <button class="theme-btn active" data-set-theme="default" title="Silhouette Vibe"></button>
@@ -1262,7 +1262,7 @@
           </li>
           <li class="memory-item">
             <i class="fa-solid fa-circle-check"></i>
-            <span><strong>Song Search:</strong> Type in the playlist search box or select "Search Songs" on the iPod menu to find any track.</span>
+            <span><strong>Multi-Playlist Library:</strong> Combines tracks from both playlists into one mega iPod music library.</span>
           </li>
           <li class="memory-item">
             <i class="fa-solid fa-circle-check"></i>
@@ -1332,7 +1332,7 @@
                     </div>
                     <div class="track-meta">
                       <div class="marquee-text" id="lcdTrackTitle">Loading...</div>
-                      <div class="artist-name" id="lcdArtistName">2000s Playlist</div>
+                      <div class="artist-name" id="lcdArtistName">Combined Playlist</div>
                       <div class="album-name" id="lcdAlbumName">YouTube Playlist</div>
                       <div class="lcd-visualizer">
                         <div class="viz-bar"></div>
@@ -1398,7 +1398,7 @@
                     <i class="fa-solid fa-rotate"></i>
                   </div>
                   <div class="sync-title">Do Not Disconnect</div>
-                  <div style="font-size: 0.7rem; opacity: 0.8;">Syncing YouTube playlist...</div>
+                  <div style="font-size: 0.7rem; opacity: 0.8;">Syncing YouTube playlists...</div>
                 </div>
 
                 <!-- VIEW 5: BRICK GAME -->
@@ -1436,7 +1436,7 @@
       <section class="playlist-panel">
         <h2 class="card-title">
           <i class="fa-solid fa-list-ul"></i>
-          <span>YouTube Playlist</span>
+          <span>Combined Playlist</span>
         </h2>
 
         <!-- Search Box -->
@@ -1449,7 +1449,7 @@
         <div class="playlist-scroll" id="playlistTrackScroll">
           <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 0;">
             <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.4rem; margin-bottom: 0.5rem; display: block;"></i>
-            Loading tracks from YouTube...
+            Loading tracks from playlists...
           </div>
         </div>
       </section>
@@ -1497,7 +1497,13 @@
   </div>
 
   <script>
-    /* DYNAMIC PLAYLIST STORAGE */
+    /* MULTI-PLAYLIST VIDEO IDS STORAGE */
+    const EXTRA_PLAYLIST_IDS = [
+      '1V4AscLidwg', 'ClxRBb7vLkw', '3KL9MUF8w68', 'fJ9rUzIMcZQ',
+      'gOMhN-hfIyY', 'YvkUqvS2B68', 'PWgvGjahvGE', '4m1EFMoRFvY',
+      'Soa3gO7tL-c', 'BciS5krYL80'
+    ];
+
     let TRACKS_DATABASE = [];
     let searchQuery = "";
 
@@ -1693,12 +1699,7 @@
           <div class="track-duration">${track.duration || 'YouTube'}</div>
         `;
         row.addEventListener('click', () => {
-          currentTrackIndex = index;
-          updateTrackUI();
-          if (ytPlayer && typeof ytPlayer.playVideoAt === 'function') {
-            ytPlayer.playVideoAt(currentTrackIndex);
-          }
-          setPlayState(true);
+          playTrackAtIndex(index);
         });
         playlistTrackScroll.appendChild(row);
       });
@@ -1722,12 +1723,7 @@
         div.className = `lcd-search-item ${track._origIdx === currentTrackIndex ? 'selected' : ''}`;
         div.innerHTML = `<span>${track.title}</span><span style="opacity:0.75; font-size:0.65rem;">${track.artist}</span>`;
         div.addEventListener('click', () => {
-          currentTrackIndex = track._origIdx;
-          updateTrackUI();
-          if (ytPlayer && typeof ytPlayer.playVideoAt === 'function') {
-            ytPlayer.playVideoAt(currentTrackIndex);
-          }
-          setPlayState(true);
+          playTrackAtIndex(track._origIdx);
           switchScreen('nowplaying');
         });
         lcdSearchResults.appendChild(div);
@@ -1787,28 +1783,28 @@
       }
     }
 
+    function playTrackAtIndex(idx) {
+      if (!TRACKS_DATABASE.length) return;
+      currentTrackIndex = (idx + TRACKS_DATABASE.length) % TRACKS_DATABASE.length;
+      const track = TRACKS_DATABASE[currentTrackIndex];
+      updateTrackUI();
+
+      if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+        ytPlayer.loadVideoById(track.id);
+      }
+      setPlayState(true);
+    }
+
     function playNextTrack() {
       if (isLocked || !TRACKS_DATABASE.length) return;
       playClickSound();
-      currentTrackIndex = (currentTrackIndex + 1) % TRACKS_DATABASE.length;
-      updateTrackUI();
-
-      if (ytPlayer && typeof ytPlayer.playVideoAt === 'function') {
-        ytPlayer.playVideoAt(currentTrackIndex);
-      }
-      setPlayState(true);
+      playTrackAtIndex(currentTrackIndex + 1);
     }
 
     function playPrevTrack() {
       if (isLocked || !TRACKS_DATABASE.length) return;
       playClickSound();
-      currentTrackIndex = (currentTrackIndex - 1 + TRACKS_DATABASE.length) % TRACKS_DATABASE.length;
-      updateTrackUI();
-
-      if (ytPlayer && typeof ytPlayer.playVideoAt === 'function') {
-        ytPlayer.playVideoAt(currentTrackIndex);
-      }
-      setPlayState(true);
+      playTrackAtIndex(currentTrackIndex - 1);
     }
 
     function switchScreen(screenName) {
@@ -1998,7 +1994,7 @@
     });
 
     window.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT') return; // Don't intercept when typing in search input
+      if (e.target.tagName === 'INPUT') return;
       if (e.code === 'Space') { e.preventDefault(); togglePlayPause(); }
       else if (e.code === 'ArrowRight') playNextTrack();
       else if (e.code === 'ArrowLeft') playPrevTrack();
@@ -2126,30 +2122,32 @@
 
     function fetchPlaylistMetadata() {
       if (!ytPlayer || typeof ytPlayer.getPlaylist !== 'function') return;
-      const playlistIds = ytPlayer.getPlaylist();
-      if (!playlistIds || !playlistIds.length) return;
+      const p1 = ytPlayer.getPlaylist() || [];
+      const combinedIds = Array.from(new Set([...p1, ...EXTRA_PLAYLIST_IDS]));
 
-      TRACKS_DATABASE = playlistIds.map((vidId, i) => ({
+      TRACKS_DATABASE = combinedIds.map((vidId, i) => ({
         id: vidId,
         title: `Track #${i + 1}`,
-        artist: 'YouTube Playlist',
-        album: '2000s Hits',
+        artist: '2000s Nostalgia',
+        album: 'Combined Playlist',
         duration: '',
         art: `https://img.youtube.com/vi/${vidId}/hqdefault.jpg`
       }));
 
       renderPlaylistUI();
 
-      playlistIds.forEach((vidId, i) => {
+      combinedIds.forEach((vidId, i) => {
         fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${vidId}`)
           .then(res => res.json())
           .then(data => {
             if (data && data.title) {
               const parsed = parseTrackTitle(data.title, data.author_name);
-              TRACKS_DATABASE[i].title = parsed.title;
-              TRACKS_DATABASE[i].artist = parsed.artist;
-              if (data.thumbnail_url) {
-                TRACKS_DATABASE[i].art = data.thumbnail_url;
+              if (TRACKS_DATABASE[i]) {
+                TRACKS_DATABASE[i].title = parsed.title;
+                TRACKS_DATABASE[i].artist = parsed.artist;
+                if (data.thumbnail_url) {
+                  TRACKS_DATABASE[i].art = data.thumbnail_url;
+                }
               }
               renderPlaylistUI();
             }
@@ -2173,12 +2171,6 @@
 
     function updateLiveTrackInfo() {
       if (!ytPlayer) return;
-      if (typeof ytPlayer.getPlaylistIndex === 'function') {
-        const idx = ytPlayer.getPlaylistIndex();
-        if (idx >= 0 && idx < TRACKS_DATABASE.length) {
-          currentTrackIndex = idx;
-        }
-      }
 
       if (typeof ytPlayer.getVideoData === 'function') {
         const data = ytPlayer.getVideoData();
