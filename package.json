@@ -1,0 +1,23 @@
+{
+  "name": "ipod-nostalgia",
+  "version": "1.0.0",
+  "description": "A nostalgic 2000s single-page web application featuring a photorealistic CSS iPod Classic, interactive Click Wheel, 3D Cover Flow, Web Audio API click sound effects, and YouTube playlist audio synchronization.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krishnagarg042008/ipod-nostalgia.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/krishnagarg042008/ipod-nostalgia/issues"
+  },
+  "homepage": "https://github.com/krishnagarg042008/ipod-nostalgia#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
