@@ -1495,6 +1495,7 @@
   <div id="yt-player-container">
     <div id="yt-player-element-1"></div>
     <div id="yt-player-element-2"></div>
+    <div id="yt-player-element-3"></div>
   </div>
 
   <script>
@@ -2085,8 +2086,10 @@
     /* DYNAMIC MULTI-PLAYLIST YOUTUBE API LOADER */
     let player1 = null;
     let player2 = null;
+    let player3 = null;
     let p1Ready = false;
     let p2Ready = false;
+    let p3Ready = false;
 
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
@@ -2102,7 +2105,7 @@
           'autoplay': 0, 'controls': 0, 'rel': 0
         },
         events: {
-          'onReady': () => { p1Ready = true; checkBothPlayersReady(); },
+          'onReady': () => { p1Ready = true; checkAllPlayersReady(); },
           'onStateChange': onPlayerStateChange,
           'onError': onPlayerError
         }
@@ -2116,15 +2119,38 @@
           'autoplay': 0, 'controls': 0, 'rel': 0
         },
         events: {
-          'onReady': () => { p2Ready = true; checkBothPlayersReady(); },
+          'onReady': () => { p2Ready = true; checkAllPlayersReady(); },
           'onError': onPlayerError
         }
       });
+
+      player3 = new YT.Player('yt-player-element-3', {
+        height: '1', width: '1',
+        playerVars: {
+          'listType': 'playlist',
+          'list': 'PLKeK24b8gllc',
+          'autoplay': 0, 'controls': 0, 'rel': 0
+        },
+        events: {
+          'onReady': () => { p3Ready = true; checkAllPlayersReady(); },
+          'onError': onPlayerError
+        }
+      });
+      setTimeout(() => {
+        if (!playlistsLoaded) {
+          playlistsLoaded = true;
+          console.log("Fallback timeout: loading combined playlists");
+          fetchCombinedPlaylists();
+          setInterval(syncPlayerProgress, 500);
+        }
+      }, 3500);
     };
 
-    function checkBothPlayersReady() {
-      if (p1Ready && p2Ready) {
-        console.log("Both YouTube Playlist Players Ready!");
+    let playlistsLoaded = false;
+    function checkAllPlayersReady() {
+      if (p1Ready && p2Ready && p3Ready && !playlistsLoaded) {
+        playlistsLoaded = true;
+        console.log("All 3 YouTube Playlist Players Ready!");
         fetchCombinedPlaylists();
         setInterval(syncPlayerProgress, 500);
       }
@@ -2133,8 +2159,9 @@
     function fetchCombinedPlaylists() {
       const ids1 = (player1 && typeof player1.getPlaylist === 'function') ? (player1.getPlaylist() || []) : [];
       const ids2 = (player2 && typeof player2.getPlaylist === 'function') ? (player2.getPlaylist() || []) : [];
+      const ids3 = (player3 && typeof player3.getPlaylist === 'function') ? (player3.getPlaylist() || []) : [];
 
-      const combinedIds = Array.from(new Set([...ids1, ...ids2]));
+      const combinedIds = Array.from(new Set([...ids1, ...ids2, ...ids3]));
       if (!combinedIds.length) return;
 
       TRACKS_DATABASE = combinedIds.map((vidId, i) => ({
