@@ -862,6 +862,35 @@
       color: #444;
     }
 
+    .lcd-genre-bar {
+      display: flex;
+      gap: 3px;
+      overflow-x: auto;
+      margin-bottom: 5px;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .lcd-genre-bar::-webkit-scrollbar { display: none; }
+
+    .lcd-genre-chip {
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      white-space: nowrap;
+      color: var(--ipod-screen-text);
+      transition: all 0.15s ease;
+    }
+
+    .lcd-genre-chip.active {
+      background: #1d68bc;
+      color: #ffffff;
+      border-color: #104e96;
+    }
+
     .lcd-search-results {
       flex: 1;
       display: flex;
@@ -1000,6 +1029,55 @@
     }
 
     .playlist-search-box .clear-search-btn:hover { color: #fff; }
+
+    /* GENRE FILTER PILLS */
+    .genre-pill-bar {
+      display: flex;
+      gap: 0.45rem;
+      overflow-x: auto;
+      padding: 0.1rem 0 0.4rem 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .genre-pill-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .genre-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .genre-pill i {
+      font-size: 0.72rem;
+    }
+
+    .genre-pill:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .genre-pill.active {
+      background: linear-gradient(135deg, var(--accent-neon), var(--accent-cyan));
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(255, 0, 127, 0.35);
+      transform: scale(1.03);
+    }
 
     .playlist-scroll {
       display: flex;
@@ -1412,6 +1490,14 @@
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" id="lcdSearchInput" placeholder="Search track..." autocomplete="off">
                   </div>
+                  <div class="lcd-genre-bar" id="lcdGenreBar">
+                    <span class="lcd-genre-chip active" data-genre="all">All</span>
+                    <span class="lcd-genre-chip" data-genre="bollywood">Desi</span>
+                    <span class="lcd-genre-chip" data-genre="rock">Rock</span>
+                    <span class="lcd-genre-chip" data-genre="pop">Pop</span>
+                    <span class="lcd-genre-chip" data-genre="romantic">Love</span>
+                    <span class="lcd-genre-chip" data-genre="hiphop">HipHop</span>
+                  </div>
                   <div class="lcd-search-results" id="lcdSearchResults"></div>
                 </div>
 
@@ -1432,7 +1518,7 @@
         </div>
       </section>
 
-      <!-- RIGHT SIDEBAR PLAYLIST WITH SEARCH -->
+      <!-- RIGHT SIDEBAR PLAYLIST WITH SEARCH & GENRES -->
       <section class="playlist-panel">
         <h2 class="card-title">
           <i class="fa-solid fa-list-ul"></i>
@@ -1444,6 +1530,16 @@
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
           <input type="text" id="songSearchInput" placeholder="Search songs or artists..." autocomplete="off">
           <button id="clearSearchBtn" class="clear-search-btn" style="display:none;" title="Clear search"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Genre Filter Pills Below Search -->
+        <div class="genre-pill-bar" id="genrePillBar">
+          <button class="genre-pill active" data-genre="all"><i class="fa-solid fa-layer-group"></i> All</button>
+          <button class="genre-pill" data-genre="bollywood"><i class="fa-solid fa-compact-disc"></i> Bollywood & Desi</button>
+          <button class="genre-pill" data-genre="rock"><i class="fa-solid fa-guitar"></i> Rock & Alt</button>
+          <button class="genre-pill" data-genre="pop"><i class="fa-solid fa-wand-magic-sparkles"></i> Pop & Dance</button>
+          <button class="genre-pill" data-genre="romantic"><i class="fa-solid fa-heart"></i> Romantic</button>
+          <button class="genre-pill" data-genre="hiphop"><i class="fa-solid fa-headphones"></i> Hip-Hop & R&B</button>
         </div>
 
         <div class="playlist-scroll" id="playlistTrackScroll">
@@ -1501,6 +1597,56 @@
   <script>
     let TRACKS_DATABASE = [];
     let searchQuery = "";
+    let selectedGenre = "all";
+
+    const GENRE_KEYWORDS = {
+      'all': [],
+      'bollywood': [
+        'arijit', 'atif', 'sonu', 'shreya', 'pritam', 'rahman', 'kk', 'mohit', 'sunidhi',
+        'jubin', 'neha', 'badshah', 'honey', 'diljit', 'punjabi', 'hindi', 'bollywood',
+        't-series', 'zeemusic', 'yrf', 'bhushan', 'karan', 'sidhu', 'ap dhillon', 'king',
+        'b praak', 'jaani', 'darshan', 'armaan', 'amit trivedi', 'vishal', 'shekhar',
+        'sachin', 'jigar', 'himesh', 'alka', 'udit', 'kumar sanu', 'anuv', 'prateek', 'jasleen',
+        'lata', 'kishore', 'mohd', 'rafi', 'r.d. burman', 'gulzar', 'papon', 'shaan', 'ali zafar'
+      ],
+      'rock': [
+        'rock', 'metal', 'linkin', 'park', 'greenday', 'green day', 'coldplay', 'nirvana',
+        'evanescence', 'queen', 'ac/dc', 'metallica', 'bon jovi', 'guns', 'roses', 'foo fighters',
+        'blink', 'paramore', 'fall out boy', 'my chemical romance', 'rhcp', 'red hot', 'chili',
+        'audioslave', 'guitar', 'muse', 'system of a down', 'sum 41', 'simple plan', 'nickelback',
+        '3 doors down', 'the offspring', 'disturbed', 'avenged', 'radiohead', 'oasis', 'u2',
+        'imagine dragons', 'the killers', 'arctic monkeys', 'aerosmith', 'scorpions', 'bryan adams'
+      ],
+      'pop': [
+        'pop', 'dance', 'britney', 'spears', 'rihanna', 'katy perry', 'lady gaga', 'taylor swift',
+        'justin', 'bieber', 'timberlake', 'shakira', 'beyonce', 'dua lipa', 'bruno mars',
+        'maroon 5', 'pitbull', 'kesha', 'black eyed peas', 'avril', 'lavigne', 'madonna',
+        'miley', 'cyrus', 'selena', 'gomez', 'ariana', 'grande', 'charlie puth', 'ed sheeran',
+        'shawn mendes', 'remix', 'dj', 'club', 'party', 'sia', 'camila cabello', 'billie eilish',
+        'the weeknd', 'kygo', 'alan walker', 'marshmello', 'david guetta', 'calvin harris', 'chainsmokers'
+      ],
+      'romantic': [
+        'love', 'romantic', 'slow', 'acoustic', 'unplugged', 'heart', 'tum', 'dil', 'ishq',
+        'pyaar', 'mohabbat', 'saathiya', 'humsafar', 'raataan', 'shayad', 'hawaayein', 'jeena',
+        'kasoor', 'channa', 'tere', 'meraa', 'sad', 'crying', 'alone', 'broken', 'ballad',
+        'piano', 'feelings', 'sweet', 'soft', 'pehle', 'deewana', 'zara', 'dua', 'humnava',
+        'chupke', 'tujhe', 'baarishein', 'maana', 'kaun tujhe', 'muskurane', 'galliyan'
+      ],
+      'hiphop': [
+        'rap', 'hip hop', 'hip-hop', 'r&b', 'eminem', '50 cent', 'snoop', 'dogg', 'dr. dre',
+        'kanye', 'drake', 'travis', 'scott', 'post malone', 'kendrick', 'lamar', 'jay-z',
+        'lil', 'wayne', 'future', 'cardi', 'nicki', 'minaj', 'tupac', '2pac', 'notorious',
+        'big', 'usher', 'chris brown', 'ne-yo', 'akon', 't-pain', 'outkast', 'ludacris',
+        'raftaar', 'emiway', 'divine', 'mc stan', 'krsna', 'seedhe maut', 'ikka', 'yo yo'
+      ]
+    };
+
+    function isTrackMatchingGenre(track, genre) {
+      if (!genre || genre === 'all') return true;
+      const kwList = GENRE_KEYWORDS[genre] || [];
+      const text = `${track.title || ''} ${track.artist || ''} ${track.album || ''}`.toLowerCase();
+      return kwList.some(kw => text.includes(kw));
+    }
 
     const NOSTALGIA_QUOTES = [
       `"1,000 songs in your pocket. Say hello to iPod." — Steve Jobs, Oct 2001`,
@@ -1642,7 +1788,7 @@
       };
     }
 
-    /* SEARCH FILTERING LOGIC */
+    /* SEARCH & GENRE FILTERING LOGIC */
     songSearchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value;
       clearSearchBtn.style.display = searchQuery ? 'block' : 'none';
@@ -1660,6 +1806,40 @@
       renderLcdSearchResults(e.target.value);
     });
 
+    document.querySelectorAll('.genre-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.genre-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        selectedGenre = pill.getAttribute('data-genre') || 'all';
+
+        // Sync LCD genre chips
+        document.querySelectorAll('.lcd-genre-chip').forEach(chip => {
+          chip.classList.toggle('active', chip.getAttribute('data-genre') === selectedGenre);
+        });
+
+        playClickSound();
+        renderPlaylistUI();
+        renderLcdSearchResults(lcdSearchInput.value);
+      });
+    });
+
+    document.querySelectorAll('.lcd-genre-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.lcd-genre-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        selectedGenre = chip.getAttribute('data-genre') || 'all';
+
+        // Sync playlist panel genre pills
+        document.querySelectorAll('.genre-pill').forEach(pill => {
+          pill.classList.toggle('active', pill.getAttribute('data-genre') === selectedGenre);
+        });
+
+        playClickSound();
+        renderPlaylistUI();
+        renderLcdSearchResults(lcdSearchInput.value);
+      });
+    });
+
     function renderPlaylistUI() {
       playlistTrackScroll.innerHTML = '';
       if (!TRACKS_DATABASE.length) {
@@ -1672,12 +1852,15 @@
       const q = searchQuery.trim().toLowerCase();
       const filtered = TRACKS_DATABASE.map((track, idx) => ({ ...track, _origIdx: idx }))
         .filter(track => {
-          if (!q) return true;
-          return track.title.toLowerCase().includes(q) || track.artist.toLowerCase().includes(q);
+          const matchesQuery = !q || track.title.toLowerCase().includes(q) || track.artist.toLowerCase().includes(q);
+          const matchesGenre = isTrackMatchingGenre(track, selectedGenre);
+          return matchesQuery && matchesGenre;
         });
 
       if (!filtered.length) {
-        playlistTrackScroll.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 0;">No songs match "${searchQuery}"</div>`;
+        const activeGenreBtn = document.querySelector(`.genre-pill[data-genre="${selectedGenre}"]`);
+        const genreName = activeGenreBtn ? activeGenreBtn.innerText.trim() : selectedGenre;
+        playlistTrackScroll.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 0;">No songs found for ${searchQuery ? `"${searchQuery}" in ` : ''}${genreName}</div>`;
         return;
       }
 
@@ -1706,7 +1889,11 @@
       lcdSearchResults.innerHTML = '';
       const q = queryStr.trim().toLowerCase();
       const filtered = TRACKS_DATABASE.map((t, idx) => ({ ...t, _origIdx: idx }))
-        .filter(t => !q || t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
+        .filter(t => {
+          const matchesQuery = !q || t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q);
+          const matchesGenre = isTrackMatchingGenre(t, selectedGenre);
+          return matchesQuery && matchesGenre;
+        });
 
       if (!filtered.length) {
         lcdSearchResults.innerHTML = `<div style="padding: 10px; font-size: 0.72rem; text-align: center; opacity: 0.7;">No tracks found</div>`;
